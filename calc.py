@@ -3,21 +3,22 @@ from pytimeparse import parse
 from dotenv import load_dotenv
 
 
-def tmr(author_id, message):
+def tmr(author_id, message, bot_instance):
     time = parse(message)
-    message_id = bot.send_message(author_id, 'Запуск таймера')
+    message_id = bot_instance.send_message(author_id, 'Запуск таймера')
     if time is None:
-        bot.send_message(author_id, 'Ошибка!')
+        bot_instance.send_message(author_id, 'Ошибка!')
     else:
-        bot.create_countdown(time, notify, message_id=message_id, chat_id=author_id, time=time)
+        bot_instance.create_countdown(time, notify, message_id=message_id, chat_id=author_id, 
+                                      time=time, bot_instance=bot_instance)
 
 
-def notify(secs_left, message_id, chat_id, time):
+def notify(secs_left, message_id, chat_id, time, bot_instance):
     if secs_left == 0:
-        bot.send_message(chat_id, 'Время вышло!')
+        bot_instance.send_message(chat_id, 'Время вышло!')
     else:
         new_message= "Осталось {} секунд!".format(secs_left) + '\n' + render_progressbar(time, time-secs_left+1)
-        bot.update_message(chat_id, message_id, new_message)
+        bot_instance.update_message(chat_id, message_id, new_message)
 
 
 def render_progressbar(total, iteration, prefix='', suffix='', length=30, fill='█', zfill='░'):
@@ -28,13 +29,19 @@ def render_progressbar(total, iteration, prefix='', suffix='', length=30, fill='
     pbar = fill * filled_length + zfill * (length - filled_length)
     return '{0} |{1}| {2}% {3}'.format(prefix, pbar, percent, suffix)
 
+    
+def main():
+    load_dotenv()
+    tg_token = os.getenv('TELEGRAM_TOKEN')
+    tg_chat_id = os.getenv('TG_CHAT_ID')
+    bot = ptbot.Bot(tg_token)
+    bot.send_message(tg_chat_id, "Бот запущен")
+    bot.reply_on_message(tmr, bot_instance=bot)
+    bot.run_bot()
+
 
 if __name__ == '__main__':
-    load_dotenv()
-TG_TOKEN = os.getenv('TELEGRAM_TOKEN')
-TELG_CHAT_ID = os.getenv('TG_CHAT_ID')
-bot = ptbot.Bot(TG_TOKEN)
-bot.send_message(TELG_CHAT_ID, "Бот запущен")
-bot = ptbot.Bot(TG_TOKEN)
-bot.reply_on_message(tmr)
-bot.run_bot()
+    main()
+   
+    
+
